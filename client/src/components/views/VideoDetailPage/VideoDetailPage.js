@@ -1,14 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import {Row, Col, List, Avatar} from 'antd';
 import Axios from "axios";
-import SideVideo from "../VideoUploadPage/Sections/SideVideo";
-import Subscribe from "../VideoUploadPage/Sections/Subscribe";
+import SideVideo from "./Sections/SideVideo";
+import Subscribe from "./Sections/Subscribe";
+import Comment from "./Sections/Comment";
+import LikeDislikes from "./Sections/LikeDislikes";
+
 
 function VideoDetailPage(props) {
     const videoId = props.match.params.videoId;
     const variable = {videoId: videoId}
 
     const [VideoDetail, setVideoDetail] = useState([]);
+    const [Comments, setComments] = useState([]);
 
     useEffect(() => {
         Axios.post('/api/video/getVideoDetail', variable)
@@ -19,18 +23,32 @@ function VideoDetailPage(props) {
                     alert('비디오 정보를 가져오기 실패했습니다.')
                 }
             })
+        Axios.post('/api/comment/getComments', variable)
+            .then(response => {
+                if(response.data.success) {
+                    setComments(response.data.comments)
+                } else {
+                    alert('댓글을 가져오지 못했습니다.')
+                }
+            })
 
     }, []);
 
+    const refreshFunction = (newComment) => {
+        setComments(Comments.concat(newComment))
+    }
+
     if(VideoDetail.writer) {
+
+        const subscribeButton = VideoDetail.writer._id !== localStorage.getItem('userId') && <Subscribe userTo={VideoDetail.writer._id} userFrom={localStorage.getItem('userId')} />
         return (
             <div>
                 <Row gutter={[16, 16]}>
                     <Col lg={18} xs={24}>
                         <div style={{width: '100%', padding: '3rem 4rem'}}>
-                            <video style={{width: '100%'}} src={`http://localhost:5000/${VideoDetail.filePath}`} controls />
+                            <video style={{width: '100%'}} src={`http://localhost:5000/${VideoDetail.filePath}`} controls autoPlay />
                             <List.Item
-                                actions={[<Subscribe userTo={VideoDetail.writer._id}/>]}
+                                actions={[<LikeDislikes videoId={videoId} userId={localStorage.getItem('userId')} />, subscribeButton]}
                             >
                                 <List.Item.Meta
                                     avatar={<Avatar src={VideoDetail.writer.image}/>}
@@ -39,13 +57,13 @@ function VideoDetailPage(props) {
                                 />
 
                             </List.Item>
-                            {/*comment*/}
+
+                            <Comment videoId={videoId} commentLists={Comments} refreshFunction={refreshFunction}/>
                         </div>
                     </Col>
                     <Col lg={6} xs={24}>
                         <SideVideo />
                     </Col>
-
                 </Row>
             </div>
         );

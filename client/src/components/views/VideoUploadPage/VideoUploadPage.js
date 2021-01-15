@@ -22,6 +22,7 @@ const CategoryOptions = [
 
 function VideoUploadPage(props) {
     const user = useSelector(state => state.user)
+
     const [VideoTitle, setVideoTitle] = useState("")
     const [Description, setDescription] = useState("")
     const [Private, setPrivate] = useState(0)
@@ -94,7 +95,7 @@ function VideoUploadPage(props) {
 
         Axios.post('/api/video/uploadVideo', variables)
             .then(response => {
-                if(response.data.success) {
+                if (response.data.success) {
                     message.success('성공적으로 업로드를 했습니다.')
                     setTimeout(() => {
                         props.history.push('/')

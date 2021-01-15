@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const {Video} = require("../models/Video");
+const {Subscriber} = require("../models/Subscriber");
 const multer = require("multer");
 const path = require('path');
 var ffmpeg = require('fluent-ffmpeg');
@@ -104,6 +105,28 @@ router.post("/thumbnail", (req, res) => {
             size: '320x240',
             filename: 'thumbnail-%b.png'
         })
+});
+
+router.post("/getSubscriptionVideos", (req, res) => {
+
+    Subscriber.find({userFrom: req.body.userFrom})
+        .exec((err, subscriberInfo) => {
+            if (err) return res.status(400).send(err);
+            let subscribedUser = [];
+            console.log(req.body.userFrom)
+            console.log(subscriberInfo)
+            subscriberInfo.map((subscriber, i) => {
+                subscribedUser.push(subscriber.userTo)
+            })
+
+            Video.find({writer: {$in: subscribedUser}})
+                .populate("writer")
+                .exec((err, videos) => {
+                    if (err) return res.status(400).send(err);
+                    res.status(200).json({success: true, videos})
+                })
+        })
+
 });
 
 module.exports = router;
