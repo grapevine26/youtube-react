@@ -85,7 +85,7 @@ function LikeDislikes(props) {
                 .then(response => {
                     if (response.data.success) {
                         setDislikes(Dislikes + 1)
-                        setLikeAction('disliked')
+                        setDislikeAction('disliked')
 
                         if (LikeAction !== null) {
                             setLikeAction(null)
